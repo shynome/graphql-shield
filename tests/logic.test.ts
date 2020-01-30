@@ -3,7 +3,7 @@ import { applyMiddleware } from 'graphql-middleware'
 import { makeExecutableSchema } from 'graphql-tools'
 import { shield, rule, allow, deny, and, or, not } from '../src'
 import { LogicRule } from '../src/rules'
-import { chain } from '../src/constructors'
+import { chain, race } from '../src/constructors'
 
 describe('logic rules', () => {
   test('allow, deny work as expeted', async () => {
@@ -187,7 +187,7 @@ describe('logic rules', () => {
     expect(res.errors.length).toBe(2)
   })
 
-  test('or chain works as expected', async () => {
+  test('race chain works as expected', async () => {
     const typeDefs = `
       type Query {
         allow: String
@@ -238,9 +238,9 @@ describe('logic rules', () => {
 
     const permissions = shield({
       Query: {
-        allow: or(chain(denyRuleA, allowRuleB, denyRuleC, allowRuleD)),
-        deny: or(chain(denyRule, denyRule, denyRule)),
-        ruleError: or(chain(ruleWithError, ruleWithError, ruleWithError)),
+        allow: race(chain(denyRuleA, allowRuleB, denyRuleC, allowRuleD)),
+        deny: race(chain(denyRule, denyRule, denyRule)),
+        ruleError: race(chain(ruleWithError, ruleWithError, ruleWithError)),
       },
     })
 
